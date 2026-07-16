@@ -1,0 +1,31 @@
+# Сборка
+CCMonitor.app/
+*.o
+.build/
+
+# Артефакты сборки во временной папке (на всякий случай)
+cc-arm64
+cc-x86
+ccmonitor-build
+
+# Скриншоты-снимки панели (кроме docs/screenshot.png — его добавить force)
+snapshot*.png
+*.snapshot.png
+
+# Локальные данные пользователя — на всякий случай, если кто-то скопирует их в репо
+limits-cache.json
+usage-monitor/
+
+# macOS
+.DS_Store
+._*
+.AppleDouble
+
+# Редакторы
+.vscode/
+.idea/
+*.swp
+
+# Claude Code / агентские артефакты
+.claude/
+CLAUDE.md
