@@ -6,9 +6,9 @@ echo "== Установка CCMonitor =="
 
 # 1. python3
 if ! command -v python3 >/dev/null 2>&1 && [ ! -x /usr/bin/python3 ]; then
-  echo "Нужен python3. Установи инструменты разработчика командой:"
+  echo "Нужен python3. Установите инструменты разработчика командой:"
   echo "    xcode-select --install"
-  echo "затем запусти install.sh снова."
+  echo "затем запустите install.sh снова."
   exit 1
 fi
 
@@ -16,7 +16,7 @@ fi
 if ! security find-generic-password -s "Claude Code-credentials" >/dev/null 2>&1; then
   echo ""
   echo "! Не найден вход в Claude Code."
-  echo "  Приложение показывает ТВОИ лимиты Claude Code — установи и залогинься в Claude Code,"
+  echo "  Приложение показывает лимиты вашего Claude Code — установите и залогиньтесь,"
   echo "  иначе данные не появятся. Установку продолжаю."
   echo ""
 fi
@@ -44,11 +44,31 @@ cat > "$PLIST" <<EOF
 </dict></plist>
 EOF
 
+# 5. агент Codex: раз в 5 минут снимает лимиты Codex (если он установлен) в ~/.claude/usage-monitor
+CPLIST="$HOME/Library/LaunchAgents/com.ccmonitor.app.codex.plist"
+cat > "$CPLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.ccmonitor.app.codex</string>
+  <key>ProgramArguments</key><array>
+    <string>/usr/bin/python3</string>
+    <string>$HOME/Applications/CCMonitor.app/Contents/Resources/codex-usage-local.py</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>StartInterval</key><integer>300</integer>
+  <key>ProcessType</key><string>Background</string>
+</dict></plist>
+EOF
+
 U=$(id -u)
-launchctl bootout "gui/$U/com.ccmonitor.app" 2>/dev/null || true
+for L in com.ccmonitor.app com.ccmonitor.app.codex; do
+  launchctl bootout "gui/$U/$L" 2>/dev/null || true
+done
 launchctl bootstrap "gui/$U" "$PLIST" 2>/dev/null || launchctl load -w "$PLIST" 2>/dev/null || true
+launchctl bootstrap "gui/$U" "$CPLIST" 2>/dev/null || launchctl load -w "$CPLIST" 2>/dev/null || true
 
 echo ""
 echo "Готово. CCMonitor запущен и будет стартовать при входе в систему."
 echo "Иконка со статусом — в строке меню справа вверху."
-echo "При первом обращении к паролю Claude Code нажми «Всегда разрешать»."
+echo "При первом обращении к паролю Claude Code нажмите «Всегда разрешать»."
